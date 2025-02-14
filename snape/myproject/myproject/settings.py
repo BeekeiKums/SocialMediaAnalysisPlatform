@@ -35,7 +35,7 @@ if not SECRET_KEY:
 import os
 print("DJANGO_SECRET_KEY:", os.getenv("DJANGO_SECRET_KEY"))
 
-print(os.environ)
+#print(os.environ)
 
 # MongoDB Configuration
 MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/yeryer")
@@ -98,11 +98,10 @@ DATABASES = {
         'NAME': os.getenv("MONGO_DB_NAME", "yeryer"),
         'CLIENT': {
             'host': os.getenv("MONGO_URI", "mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/yeryer"),
-            'authSource': 'admin',
-            'authMechanism': 'SCRAM-SHA-1',
         }
     }
 }
+
 
 
 # -------------------------- Neo4j Configuration -------------------------------
