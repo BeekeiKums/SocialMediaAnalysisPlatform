@@ -107,7 +107,12 @@ DATABASES = {
 
 # -------------------------- Neo4j Configuration -------------------------------
 
+# Initialize Neo4j Driver
+def get_neo4j_driver():
+    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
+# Store in a variable so it can be used elsewhere
+NEO4J_DRIVER = get_neo4j_driver()
 
 
 
