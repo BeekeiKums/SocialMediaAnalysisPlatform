@@ -86,15 +86,15 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': MONGO_DB_NAME,
-        'ENFORCE_SCHEMA': False,
+        'NAME': os.getenv("MONGO_DB_NAME", "yeryer"),
         'CLIENT': {
-            'host': MONGO_URI,
+            'host': os.getenv("MONGO_URI", "mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/yeryer"),
             'authSource': 'admin',
             'authMechanism': 'SCRAM-SHA-1',
         }
     }
 }
+
 
 # -------------------------- Neo4j Configuration -------------------------------
 
