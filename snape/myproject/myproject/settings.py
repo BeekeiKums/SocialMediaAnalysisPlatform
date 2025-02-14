@@ -95,12 +95,17 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': os.getenv("MONGO_DB_NAME", "yeryer"),
+        'NAME': 'yeryer',  # Replace with your actual DB name
+        'ENFORCE_SCHEMA': False,
         'CLIENT': {
-            'host': os.getenv("MONGO_URI", "mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/yeryer"),
+            'host': 'mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/yeryer',
+            'username': 'aunggyi',
+            'password': 'aung754826',
+            'authMechanism': 'SCRAM-SHA-1',
         }
     }
 }
+
 
 
 
