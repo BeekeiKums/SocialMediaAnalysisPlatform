@@ -33,7 +33,6 @@ if not SECRET_KEY:
     raise ValueError("🚨 ERROR: DJANGO_SECRET_KEY is missing or not loaded correctly!")
 
 import os
-print("DJANGO_SECRET_KEY:", os.getenv("DJANGO_SECRET_KEY"))
 
 #print(os.environ)
 
@@ -142,7 +141,16 @@ USE_TZ = True
 
 # Static Files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Collect all static files into this directory when running collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Tell Django where to find additional static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'main', 'static'),  # Add the existing static folder
+]
+
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
