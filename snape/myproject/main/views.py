@@ -1,26 +1,26 @@
 import calendar
 import csv, openpyxl
 import pandas as pd
-from apify_client import ApifyClient
 from django.http import HttpResponse, HttpResponseBadRequest
 from io import BytesIO, TextIOWrapper
 from django.contrib.auth.decorators import login_required
-from neomodel import db
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+
+from django.conf import settings
+
+
 from .models import Category
 from django.contrib import messages
 from .forms import UserAccountForm, CategoryForm, BusinessmanForm , ContentCreatorForm, DataAnalystForm , ProfileForm , VisibilitySettingsForm, CreatorForm
 from .models import UserAccount , Profile , DataItem , Testimonial 
 from django.http import JsonResponse
-from django.conf import  settings
-from .models import Person, Movie
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
 import os
 import re
 import csv
-from collections import defaultdict
 import instaloader
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -1063,11 +1063,6 @@ import csv
 import ast
 from neo4j import GraphDatabase
 
-# Neo4j connection details
-NEO4J_URI = "neo4j+s://fa57a3a3.databases.neo4j.io"
-NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = "mUB4QR3MrFW6x3OUeHiFlPI-WzTprL_P08DM9HiUFi8"
-
 @csrf_exempt
 def upload_csv(request):
     if request.method == 'POST' and request.FILES.get('csv_file'):
@@ -1082,7 +1077,7 @@ def upload_csv(request):
     return render(request, 'main/neoinsert.html')  # Render the form for GET requests
 
 def store_csv_to_neo4j(csv_reader):
-    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+    driver = settings.NEO4J_DRIVER
     
     with driver.session() as session:
         for row in csv_reader:
@@ -1108,7 +1103,7 @@ def store_csv_to_neo4j(csv_reader):
                     )
 
 def graph_view(request):
-    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+    driver = settings.NEO4J_DRIVER
     
     with driver.session() as session:
         result = session.run("MATCH p=()-[r:CO_OCCURS_WITH]->() RETURN p")
@@ -1488,7 +1483,7 @@ import networkx as nx
 from neo4j import GraphDatabase
 
 # Connect to Neo4j
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+driver = settings.NEO4J_DRIVER
 
 @csrf_exempt
 def linkedin_upload_csv_file(request):

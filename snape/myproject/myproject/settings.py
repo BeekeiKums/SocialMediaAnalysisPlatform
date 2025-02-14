@@ -10,29 +10,26 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv  # Load environment variables
+from neo4j import GraphDatabase
 from neomodel import config
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Load .env file
 BASE_DIR = Path(__file__).resolve().parent.parent
+ENV_PATH = os.path.join(BASE_DIR, "myproject", ".env")
+load_dotenv(ENV_PATH)
 
+# SECURITY WARNING: Keep the secret key used in production secret!
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fallback-secret-key")
 
+# SECURITY WARNING: Don't run with debug turned on in production!
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wnjnpsg#vkwrvl3yi%nsw!_h5&yph16sml#mw!)65jgo$*y7!2'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["*"]  # Change this to your domain or Render URL in production
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,7 +42,6 @@ INSTALLED_APPS = [
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -54,11 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
-    
 ]
-
-
 
 ROOT_URLCONF = 'myproject.urls'
 
@@ -66,8 +58,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-                BASE_DIR / 'main' / 'templates', 
-            ],
+            BASE_DIR / 'main' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,100 +72,78 @@ TEMPLATES = [
     },
 ]
 
-
-
-
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
-
-APIFY_API_TOKEN = "apify_api_RD5dC9E6UUmLh7zsNb7p0xmCEKBvHP1NnBZP"
-
-
-
-config.DATABASE_URL = 'bolt://neo4j:bin754826@localhost:7687'
-
-           # password = bin754826
-
+# Database Configuration (MongoDB)
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'yeryer',  # Name of your MongoDB database
+        'NAME': os.getenv("MONGO_DB_NAME"),
         'ENFORCE_SCHEMA': False,
-        
         'CLIENT': {
-            'port' : 27017,  # MongoDB port (default is 27017)
-            'host': 'mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',    # MongoDB port (default is 27017)
-            'authSource': 'admin',  # Optional: usually the admin database for authentication
+            'host': os.getenv("MONGO_URI"),
+            'authSource': 'admin',
             'authMechanism': 'SCRAM-SHA-1',
-            
-            #same username and password django administrator and mongodb administrator 
-            #new django administrator : aunggyi : aung754826
-            #rm main/migrations/000*.py
-            #brew services info mongodb-community@7.0
-            
         }
     }
 }
 
+# -------------------------- Neo4j Configuration -------------------------------
+
+
+
+# Debugging to ensure .env is loaded
+if not os.path.exists(ENV_PATH):
+    raise FileNotFoundError(f".env file not found at {ENV_PATH}")
+
+# Fetch environment variables
+NEO4J_URI = os.getenv("NEO4J_URI")
+NEO4J_USER = os.getenv("NEO4J_USER")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+
+# Debugging prints
+print(f"DEBUG: NEO4J_URI = {NEO4J_URI}")
+
+# Ensure variables are correctly loaded
+if not NEO4J_URI:
+    raise ValueError("ERROR: NEO4J_URI is not set. Check your .env file.")
+
+# Initialize Neo4j driver only if variables are correctly loaded
+from neo4j import GraphDatabase
+
+def get_neo4j_driver():
+    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+
+NEO4J_DRIVER = get_neo4j_driver()
+
+
+
+
+# ----------------------------End of Neo4j Configuration ------------------------
+
 # Maximum size for file uploads (e.g., 100MB)
-
-
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000
 
-
-
-
-
-
 # Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
+# Static Files
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',  Path(__file__).resolve().parent.parent  # Ensure your static files are in this folder
-]
-
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/admin_login/'  # Replace with the actual path to your login page
-
+# Login URL
+LOGIN_URL = '/admin_login/'  # Replace with actual login path
