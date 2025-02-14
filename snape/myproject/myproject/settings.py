@@ -21,11 +21,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_PATH = os.path.join(BASE_DIR, "myproject", ".env")
 load_dotenv(ENV_PATH)
 
-# SECURITY WARNING: Keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fallback-secret-key")
+# Read from Render's environment variables (fallback to defaults for local development)
+NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://fa57a3a3.databases.neo4j.io")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "your-default-password")
 
-# SECURITY WARNING: Don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DJANGO_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "*$3b_xkx*_7-c2bww-rh_sg5$^6-8kwfainfk&*a2_!@u74a06")
+
+# MongoDB Configuration
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/yeryer")
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "yeryer")
+
+DEBUG=False
+
 
 ALLOWED_HOSTS = ["*"]  # Change this to your domain or Render URL in production
 
@@ -78,10 +86,10 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': os.getenv("MONGO_DB_NAME"),
+        'NAME': MONGO_DB_NAME,
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
-            'host': os.getenv("MONGO_URI"),
+            'host': MONGO_URI,
             'authSource': 'admin',
             'authMechanism': 'SCRAM-SHA-1',
         }
@@ -91,30 +99,6 @@ DATABASES = {
 # -------------------------- Neo4j Configuration -------------------------------
 
 
-
-# Debugging to ensure .env is loaded
-if not os.path.exists(ENV_PATH):
-    raise FileNotFoundError(f".env file not found at {ENV_PATH}")
-
-# Fetch environment variables
-NEO4J_URI = os.getenv("NEO4J_URI")
-NEO4J_USER = os.getenv("NEO4J_USER")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-
-# Debugging prints
-print(f"DEBUG: NEO4J_URI = {NEO4J_URI}")
-
-# Ensure variables are correctly loaded
-if not NEO4J_URI:
-    raise ValueError("ERROR: NEO4J_URI is not set. Check your .env file.")
-
-# Initialize Neo4j driver only if variables are correctly loaded
-from neo4j import GraphDatabase
-
-def get_neo4j_driver():
-    return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-
-NEO4J_DRIVER = get_neo4j_driver()
 
 
 
