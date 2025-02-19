@@ -42,8 +42,9 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "yeryer")
 
 DEBUG=False
 
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "socialmediaanalysisplatform.onrender.com"]  # Change this to your domain or Render URL in production
 
-ALLOWED_HOSTS = ["*"]  # Change this to your domain or Render URL in production
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -60,6 +61,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this line
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -67,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'myproject.urls'
 
@@ -142,14 +145,16 @@ USE_TZ = True
 # Static Files
 STATIC_URL = '/static/'
 
-# Collect all static files into this directory when running collectstatic
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Directory where collectstatic stores files (for production)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ✅ Used only for collectstatic
 
-# Tell Django where to find additional static files
+# Static files directory for development (must NOT include STATIC_ROOT)
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'main', 'static'),  # Add the existing static folder
+    os.path.join(BASE_DIR, 'main', 'static'),  # ✅ Keep only this!
 ]
 
+# Ensure Whitenoise is properly configured for production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Default primary key field type
@@ -157,3 +162,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login URL
 LOGIN_URL = '/admin_login/'  # Replace with actual login path
+
+import logging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django_error.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+    },
+}
