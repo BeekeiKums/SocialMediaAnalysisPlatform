@@ -137,3 +137,16 @@ class ExportedData(models.Model):
 
     def __str__(self):
         return f"Export by {self.businessman} on {self.created_at}"
+
+class MarketingVideo(models.Model):
+    video = models.FileField(upload_to='marketing_videos/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # Ensure we only have one video at a time
+        verbose_name = 'Marketing Video'
+        verbose_name_plural = 'Marketing Videos'
+
+    @property
+    def name(self):
+        return os.path.basename(self.video.name)

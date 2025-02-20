@@ -146,12 +146,16 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Directory where collectstatic stores files (for production)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ✅ Used only for collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Static files directory for development (must NOT include STATIC_ROOT)
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'main', 'static'),  # ✅ Keep only this!
+    BASE_DIR / 'static',
 ]
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Ensure Whitenoise is properly configured for production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

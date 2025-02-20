@@ -1612,3 +1612,39 @@ def linkedin_save_graph_visualization(request):
         else:
             return JsonResponse({'status': 'error', 'message': 'No image provided.'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import MarketingVideo
+import os
+
+def manage_marketing_video(request):
+    if request.method == 'POST':
+        video_file = request.FILES.get('video')
+        if video_file:
+            # Delete existing video if it exists
+            existing_video = MarketingVideo.objects.first()
+            if existing_video:
+                # Delete the actual file
+                if os.path.exists(existing_video.video.path):
+                    os.remove(existing_video.video.path)
+                existing_video.delete()
+            
+            # Create new video entry
+            new_video = MarketingVideo(video=video_file)
+            new_video.save()
+            messages.success(request, 'Marketing video updated successfully!')
+            return redirect('manage_marketing_video')
+
+    current_video = MarketingVideo.objects.first()
+    return render(request, 'main/manage_marketing_video.html', {'current_video': current_video})
+
+def delete_marketing_video(request):
+    if request.method == 'POST':
+        video = MarketingVideo.objects.first()
+        if video:
+            if os.path.exists(video.video.path):
+                os.remove(video.video.path)
+            video.delete()
+            messages.success(request, 'Marketing video deleted successfully!')
+    return redirect('manage_marketing_video')
