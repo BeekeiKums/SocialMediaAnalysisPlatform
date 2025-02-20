@@ -195,14 +195,38 @@ def admin_logout(request):
 
 
 def businessman_dashboard(request):
-   return render(request, 'main/businessman.html')
+    # Check if user is authenticated and has the correct role
+    if not request.session.get('is_authenticated'):
+        return redirect('admin_login')
+    
+    # Verify user role
+    if request.session.get('role') != 'businessman':
+        return redirect('admin_login')
+    
+    return render(request, 'main/businessman.html')
 
 
 def content_creator_dashboard(request):
+    # Check if user is authenticated and has the correct role
+    if not request.session.get('is_authenticated'):
+        return redirect('admin_login')
+    
+    # Verify user role
+    if request.session.get('role') != 'content_creator':
+        return redirect('admin_login')
+    
     return render(request, 'main/content_creator.html')
 
 
 def data_analyst_dashboard(request):
+    # Check if user is authenticated and has the correct role
+    if not request.session.get('is_authenticated'):
+        return redirect('admin_login')
+    
+    # Verify user role
+    if request.session.get('role') != 'data_analyst':
+        return redirect('admin_login')
+    
     return render(request, 'main/data_analyst.html')
 
 
@@ -353,11 +377,13 @@ import json
 def update_profile(request, profile_id):
     if request.method == 'POST':
         profile = get_object_or_404(Profile, profile_id=profile_id)
-        data = json.loads(request.body) # Parse JSON data
-        profile.first_name = data.get('first_name' , profile.first_name)
-        profile.last_name = data.get('last_name' , profile.last_name)
-        profile.company = data.get('company' , profile.company)
-        profile.timezone = data.get('timezone' , profile.timezone)
+        data = json.loads(request.body)
+        profile.first_name = data.get('first_name', profile.first_name)
+        profile.last_name = data.get('last_name', profile.last_name)
+        profile.email = data.get('email', profile.email)
+        profile.password = data.get('password', profile.password)
+        profile.company = data.get('company', profile.company)
+        profile.timezone = data.get('timezone', profile.timezone)
         
         profile.save()
         
@@ -454,7 +480,7 @@ def handle_instagram_data(csv_raw, sponsored, post_type, time_duration):
     palette_idx += 1
 
     # Ensure the time column is correctly ordered if necessary
-    if time_order:
+    if (time_order):
         csv_raw.loc[:, time_col] = pd.Categorical(csv_raw[time_col], categories=time_order, ordered=True)
 
     # Create count plot for the selected category and time feature
@@ -868,24 +894,42 @@ def get_client_ip(request):
 
 #view user profile
 def view_profile_businessman(request):
+    # Check if user is authenticated and has the correct role
+    if not request.session.get('is_authenticated'):
+        return redirect('admin_login')
     
-    user_profile  = Profile.objects.filter(role='businessman')
-    print(user_profile)
-    return render(request, 'main/bus_profile.html', {'user_profile' : user_profile})
-
-
-
-
+    # Verify user role
+    if request.session.get('role') != 'businessman':
+        return redirect('admin_login')
+    
+    # Get username from session
+    username = request.session.get('username')
+    # Filter profile based on the logged-in user's data
+    user_profile = Profile.objects.filter(role='businessman', first_name=username)
+    return render(request, 'main/bus_profile.html', {'user_profile': user_profile})
 
 def view_profile_content_creator(request):
-    user_profile  = Profile.objects.filter(role='content_creator')
-    print(f"Content Creator Profiles : {user_profile}")
-    return render(request, 'main/view_creator_profile.html', {'user_profile' : user_profile})
+    if not request.session.get('is_authenticated'):
+        return redirect('admin_login')
+    
+    if request.session.get('role') != 'content_creator':
+        return redirect('admin_login')
+    
+    username = request.session.get('username')
+    user_profile = Profile.objects.filter(role='content_creator', first_name=username)
+    return render(request, 'main/view_creator_profile.html', {'user_profile': user_profile})
 
 def view_profile_data_analyst(request):
-    user_profile = Profile.objects.filter(role='data_analyst')
-    print(f"Data Analyst Profiles : {user_profile}")
-    return render(request, 'main/view_analyst_profile.html', {'user_profile' : user_profile})
+    if not request.session.get('is_authenticated'):
+        return redirect('admin_login')
+    
+    if request.session.get('role') != 'data_analyst':
+        return redirect('admin_login')
+    
+    username = request.session.get('username')
+    user_profile = Profile.objects.filter(role='data_analyst', first_name=username)
+    return render(request, 'main/view_analyst_profile.html', {'user_profile': user_profile})
+
 
 ## update news
 
@@ -1648,3 +1692,4 @@ def delete_marketing_video(request):
             video.delete()
             messages.success(request, 'Marketing video deleted successfully!')
     return redirect('manage_marketing_video')
+```

@@ -35,29 +35,20 @@
         </button>
     </form>
 
-    
-
-
-
-
-    
-    
     <a href="{% url 'admin_login' %}" style="display: block; margin-top: 15px; text-align: center; text-decoration: none; color: #636ae8; font-size: 14px;">Already have an Account? Login</a>
-    
-
-   
 
     {% if messages %}
         <div style="margin-top: 20px;">
             {% for message in messages %}
-                <p style="color: red; font-size: 14px; text-align: center;">{{ message }}</p>
+                {% if forloop.first %}
+                    <p style="color: {% if message.tags == 'error' %}red{% else %}green{% endif %}; font-size: 14px; text-align: center;">
+                        {{ message }}
+                    </p>
+                {% endif %}
             {% endfor %}
         </div>
     {% endif %}
 </div>
-
-
-
 
 </body>
 </html>
