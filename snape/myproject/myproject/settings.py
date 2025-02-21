@@ -156,6 +156,16 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Create media directory if it doesn't exist
+if not os.path.exists(MEDIA_ROOT):
+    os.makedirs(MEDIA_ROOT)
+
+# Ensure media files are served in development
+if DEBUG:
+    STATICFILES_DIRS += [
+        os.path.join(BASE_DIR, 'media'),
+    ]
+
 # Ensure Whitenoise is properly configured for production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
