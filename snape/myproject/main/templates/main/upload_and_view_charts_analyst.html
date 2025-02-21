@@ -170,7 +170,7 @@
     <div class="container">
         {% if not fig_html_list %}
         <h1>Upload CSV and View Charts</h1>
-        <form action="{% url 'upload_and_view_charts' %}" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'upload_and_view_charts_analyst' %}" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             
             <label for="csv_file">Choose a CSV file:</label>

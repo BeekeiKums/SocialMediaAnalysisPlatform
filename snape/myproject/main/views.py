@@ -977,14 +977,22 @@ def predict_engagement(request):
     'last_10_posts': None
 })
 #-------------------------------------------------------
-# neo4j graph visualization
+
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.conf import settings
 from io import TextIOWrapper
 import csv
 import ast
+import base64
+import os
+from django.core.files.base import ContentFile
 from neo4j import GraphDatabase
+import networkx as nx
+import json
+
+
 
 @csrf_exempt
 def upload_csv(request):
@@ -992,48 +1000,37 @@ def upload_csv(request):
         csv_file = request.FILES['csv_file']
         file_wrapper = TextIOWrapper(csv_file.file, encoding='utf-8')
         csv_reader = csv.reader(file_wrapper)
-        header = next(csv_reader)  # Read the header
-        
-        # Process the CSV file as needed
-        store_csv_to_neo4j(csv_reader)  # Ensure the CSV is stored in Neo4j
-        return redirect('graph_view')  # Redirect to graph_view after successful upload
-    return render(request, 'main/neoinsert.html')  # Render the form for GET requests
+        next(csv_reader)  # Skip header
+        store_csv_to_neo4j(csv_reader)
+        return redirect('graph_view')
+    return render(request, 'main/neoinsert.html')
 
 def store_csv_to_neo4j(csv_reader):
     driver = settings.NEO4J_DRIVER
-    
     with driver.session() as session:
         for row in csv_reader:
             try:
-                hashtags = ast.literal_eval(row[9])  # Assuming the hashtags are in the 10th column (index 9)
+                hashtags = ast.literal_eval(row[9])  # Assuming hashtags are in column 10 (index 9)
                 if not isinstance(hashtags, list):
                     raise ValueError("Hashtags column is not a list")
             except (ValueError, SyntaxError, IndexError) as e:
                 print(f"Error processing row {row}: {e}")
-                hashtags = []  # Handle empty or invalid hashtags column
-            
-            print(f"Processed hashtags: {hashtags}")
+                hashtags = []
             
             for i in range(len(hashtags)):
                 for j in range(i + 1, len(hashtags)):
-                    hashtag1, hashtag2 = hashtags[i], hashtags[j]
-                    print(f"Creating relationship between {hashtag1} and {hashtag2}")
                     session.run(
                         "MERGE (h1:Hashtag {name: $hashtag1}) "
                         "MERGE (h2:Hashtag {name: $hashtag2}) "
                         "MERGE (h1)-[:CO_OCCURS_WITH]->(h2)",
-                        hashtag1=hashtag1, hashtag2=hashtag2
+                        hashtag1=hashtags[i], hashtag2=hashtags[j]
                     )
 
 def graph_view(request):
     driver = settings.NEO4J_DRIVER
-    
     with driver.session() as session:
         result = session.run("MATCH p=()-[r:CO_OCCURS_WITH]->() RETURN p")
-        
-        nodes = []
-        edges = []
-        node_ids = set()
+        nodes, edges, node_ids = [], [], set()
         
         for record in result:
             for node in record["p"].nodes:
@@ -1073,8 +1070,23 @@ def graph_view(request):
         "edges": json.dumps(edges),
         "centrality_results": top_10_nodes
     }
-    
-    return render(request, 'main/graph.html', context)                    
+    return render(request, 'main/graph.html', context)
+
+@csrf_exempt
+def save_visualization(request):
+    if request.method == 'POST':
+        image_data = request.POST.get('image')
+        if image_data:
+            format, imgstr = image_data.split(';base64,')
+            ext = format.split('/')[-1]
+            image_file = ContentFile(base64.b64decode(imgstr), name=f"visualization.{ext}")
+            file_path = os.path.join('static', 'visualization.png')
+            with open(file_path, 'wb') as f:
+                f.write(image_file.read())
+            return JsonResponse({'status': 'success', 'message': 'Visualization saved successfully!'})
+        return JsonResponse({'status': 'error', 'message': 'No image provided.'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+              
 
 
 
@@ -1183,18 +1195,7 @@ from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
-def save_visualization(request):
-    if request.method == 'POST':
-        image = request.FILES.get('image')
-        if image:
-            with open('visualization.png', 'wb') as f:
-                for chunk in image.chunks():
-                    f.write(chunk)
-            return JsonResponse({'status': 'success', 'message': 'Visualization saved successfully!'})
-        else:
-            return JsonResponse({'status': 'error', 'message': 'No image provided.'}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
 
 
 @csrf_exempt

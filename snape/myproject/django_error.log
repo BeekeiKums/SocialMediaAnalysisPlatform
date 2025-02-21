@@ -2460,3 +2460,13 @@ Not Found: /favicon.ico
 "GET /favicon.ico HTTP/1.1" 404 12685
 Not Found: /favicon.ico
 "GET /favicon.ico HTTP/1.1" 404 12685
+Not Found: /save-visualization/
+"POST /save-visualization/ HTTP/1.1" 404 12710
+Not Found: /save-visualization/
+"POST /save-visualization/ HTTP/1.1" 404 12710
+Not Found: /save-visualization/
+"POST /save-visualization/ HTTP/1.1" 404 12710
+Not Found: /save-visualization/
+"POST /save-visualization/ HTTP/1.1" 404 12710
+Not Found: /save-visualization/
+"POST /save-visualization/ HTTP/1.1" 404 12710
