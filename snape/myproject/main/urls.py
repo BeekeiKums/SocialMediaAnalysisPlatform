@@ -9,7 +9,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('businessman_dashboard/', views.businessman_dashboard, name='businessman_dashboard'),
     path('content_creator_dashboard/', views.content_creator_dashboard, name='content_creator_dashboard'),
-    path('data-analyst-dashboard/', views.data_analyst_dashboard, name='data_analyst_dashboard'),
+    path('data_analyst_dashboard/', views.data_analyst_dashboard, name='data_analyst_dashboard'),
     
 
     #create profile
@@ -44,8 +44,7 @@ urlpatterns = [
     
     #download csv
     path('download_csv/', views.download_csv, name='download_csv'),
-    #upload csv 
-    #path('upload_csv_or_xlsx/', views.upload_csv_or_xlsx, name= 'upload_csv_or_xlsx'),
+    
 
     
     #scrape part
@@ -72,12 +71,19 @@ urlpatterns = [
     path('preds/', views.preds, name='preds'),
     path('predict_engagement/', views.predict_engagement, name='predict_engagement'),
     path('upload_and_view_charts/', views.upload_and_view_charts, name='upload_and_view_charts'),
+    path('upload_and_view_charts_analyst/', views.upload_and_view_charts_analyst, name='upload_and_view_charts_analyst'),
     
     
-    # graph visualize
+    # graph visualize for creator
     path('graph_view/', views.graph_view, name='graph_view'),
     path('upload_csv/', views.upload_csv, name='upload_csv'),
     path('save_visualization/', views.save_visualization, name='save_visualization'),
+
+    # graph visualize for data analyst
+    path('upload_csv_analyst/', views.upload_csv_analyst, name='upload_csv_analyst'),
+    path('graph_view_analyst/', views.graph_view_analyst, name='graph_view_analyst'),
+    path('save_visualization_analyst/', views.save_visualization_analyst, name='save_visualization_analyst'),
+
     
     
     

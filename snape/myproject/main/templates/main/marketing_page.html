@@ -115,7 +115,7 @@ nav a:hover {
 
 .video-section video {
     width: 100%;
-    max-width: 400px; /* Reduced from 800px to 600px */
+    max-width: 800px; /* Make video larger */
     height: auto;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -238,25 +238,6 @@ nav a:hover {
     transform: translateY(-5px);
 }
 
-.testimonial-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.date-posted {
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
-}
-
 /* User Name */
 .testimonial-card h3 {
     font-size: 18px;
@@ -270,6 +251,21 @@ nav a:hover {
     line-height: 1.6;
     color: #555;
 }
+
+/* Profile Picture */
+.profile-picture {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.profile-picture img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* Make it circular */
+    object-fit: cover;
+    border: 2px solid #ddd; /* Light border */
+}
+
 
 /* Star Ratings */
 /* Star Ratings */
@@ -446,7 +442,7 @@ footer {
     </div>
 
     <div class="video-section">
-        <video controls autoplay muted loop>
+        <video controls autoplay loop>
             <source src="{% static 'assets/snap.mp4' %}" type="video/mp4">
             Your browser does not support the video tag.
         </video>
@@ -527,23 +523,23 @@ footer {
         <!-- Testimonials Grid -->
 <div class="testimonials-grid">
     {% for testimonial in testimonials %}
-        {% if testimonial.rating >= 3 %}
-        <div class="testimonial-card" data-rating="{{ testimonial.rating }}">
-            <div class="testimonial-header">
-                <div class="user-info">
-                    <div>
-                        <h3>{{ testimonial.user.username }}</h3>
-                        <span class="date-posted">Posted on {{ testimonial.created_at|date:"F d, Y" }}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <p>"{{ testimonial.content }}"</p>
-            <div class="stars"></div>
+    <div class="testimonial-card" data-rating="{{ testimonial.rating }}">
+        <!-- Profile Picture -->
+        <div class="profile-picture">
+            <img src="{%  static 'assets/profile.jpg' %}" alt="Profile Picture">
         </div>
-        {% endif %}
+        
+        <!-- Username -->
+        <h3>{{ testimonial.user.username }}</h3>
+        
+        <!-- Testimonial Content -->
+        <p>"{{ testimonial.content }}"</p>
+        
+        <!-- Star Ratings -->
+        <div class="stars"></div>
+    </div>
     {% empty %}
-        <p>No testimonials yet. Be the first to submit one!</p>
+    <p>No testimonials yet. Be the first to submit one!</p>
     {% endfor %}
 </div>
 
@@ -572,7 +568,7 @@ footer {
         document.addEventListener("DOMContentLoaded", function () {
             let ratings = document.querySelectorAll(".testimonial-card");
             let totalRatings = ratings.length;
-            let ratingCounts = [0, 0, 0]; // Only tracking 3★, 4★, and 5★
+            let ratingCounts = [0, 0, 0, 0, 0]; // Index 0 = 1★, Index 4 = 5★
         
             if (totalRatings === 0) {
                 document.getElementById("average-rating").textContent = "0.0";
@@ -604,11 +600,8 @@ footer {
                     starsContainer.appendChild(star);
                 }
         
-                // Only count ratings 3 and above
-                if (rating >= 3) {
-                    ratingCounts[rating - 3]++;
-                    totalScore += rating;
-                }
+                ratingCounts[rating - 1]++;
+                totalScore += rating;
             });
         
             // Calculate and Display Average Rating
@@ -616,17 +609,13 @@ footer {
             document.getElementById("average-rating").textContent = averageRating;
             document.getElementById("total-reviews").textContent = totalRatings + " Reviews";
         
-            // Update Bar Graphs (only for 3★, 4★, and 5★)
-            for (let i = 3; i <= 5; i++) {
-                let count = ratingCounts[i - 3];
+            // Update Bar Graphs
+            for (let i = 1; i <= 5; i++) {
+                let count = ratingCounts[i - 1];
                 let percentage = (count / totalRatings) * 100;
                 document.getElementById("count-" + i).textContent = count;
                 document.getElementById("bar-" + i).style.width = percentage + "%";
             }
-        
-            // Hide 1★ and 2★ bars
-            document.getElementById("count-1").parentElement.style.display = "none";
-            document.getElementById("count-2").parentElement.style.display = "none";
         });
         
     </script>

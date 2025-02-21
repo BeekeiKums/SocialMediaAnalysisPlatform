@@ -167,8 +167,8 @@ tr:nth-child(even) {
             <thead>
                 <tr>
                     <th>Node</th>
-                    <th>Betweenness Centrality</th>
                     <th>Eigenvector Centrality</th>
+                    <th>Betweenness Centrality</th>
                     <th>Degree Centrality</th>
                     <th>Closeness Centrality</th>
                 </tr>
@@ -177,8 +177,8 @@ tr:nth-child(even) {
                 {% for result in centrality_results %}
                 <tr>
                     <td>{{ result.label }}</td>
-                    <td>{{ result.betweenness }}</td>
                     <td>{{ result.eigenvector }}</td>
+                    <td>{{ result.betweenness }}</td>
                     <td>{{ result.degree }}</td>
                     <td>{{ result.closeness }}</td>
                 </tr>
@@ -189,7 +189,7 @@ tr:nth-child(even) {
     </div>
     
     <!-- Back Button -->
-    <a href="{% url 'content_creator_dashboard' %}" class="back-button">⬅ Back To Dashboard</a>
+    <a href="{% url 'data_analyst_dashboard' %}" class="back-button">⬅ Back To Dashboard</a>
 
 </div>
         

@@ -121,13 +121,14 @@ class DataItem(models.Model):
         return self.name
 
 class Testimonial(models.Model):
-    user = models.CharField(max_length=100, blank=True, null=True)  # Avoid ForeignKey
+    user = models.ForeignKey(UserAccount, on_delete = models.CASCADE, null= True, blank = True)  # Avoid ForeignKey
     content = models.TextField()
     rating = models.PositiveIntegerField()  # 1 to 5 stars
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Testimonial - {self.rating} stars"
+        return f"{self.user.username if self.user else 'Anonymous'} - {self.rating} stars"
+
 
 class ExportedData(models.Model):
     businessman = models.CharField(max_length=100)  # Avoid ForeignKey

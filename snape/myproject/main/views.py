@@ -195,38 +195,14 @@ def admin_logout(request):
 
 
 def businessman_dashboard(request):
-    # Check if user is authenticated and has the correct role
-    if not request.session.get('is_authenticated'):
-        return redirect('admin_login')
-    
-    # Verify user role
-    if request.session.get('role') != 'businessman':
-        return redirect('admin_login')
-    
-    return render(request, 'main/businessman.html')
+   return render(request, 'main/businessman.html')
 
 
 def content_creator_dashboard(request):
-    # Check if user is authenticated and has the correct role
-    if not request.session.get('is_authenticated'):
-        return redirect('admin_login')
-    
-    # Verify user role
-    if request.session.get('role') != 'content_creator':
-        return redirect('admin_login')
-    
     return render(request, 'main/content_creator.html')
 
 
 def data_analyst_dashboard(request):
-    # Check if user is authenticated and has the correct role
-    if not request.session.get('is_authenticated'):
-        return redirect('admin_login')
-    
-    # Verify user role
-    if request.session.get('role') != 'data_analyst':
-        return redirect('admin_login')
-    
     return render(request, 'main/data_analyst.html')
 
 
@@ -377,13 +353,11 @@ import json
 def update_profile(request, profile_id):
     if request.method == 'POST':
         profile = get_object_or_404(Profile, profile_id=profile_id)
-        data = json.loads(request.body)
-        profile.first_name = data.get('first_name', profile.first_name)
-        profile.last_name = data.get('last_name', profile.last_name)
-        profile.email = data.get('email', profile.email)
-        profile.password = data.get('password', profile.password)
-        profile.company = data.get('company', profile.company)
-        profile.timezone = data.get('timezone', profile.timezone)
+        data = json.loads(request.body) # Parse JSON data
+        profile.first_name = data.get('first_name' , profile.first_name)
+        profile.last_name = data.get('last_name' , profile.last_name)
+        profile.company = data.get('company' , profile.company)
+        profile.timezone = data.get('timezone' , profile.timezone)
         
         profile.save()
         
@@ -391,17 +365,6 @@ def update_profile(request, profile_id):
 
     return JsonResponse({'status': 'fail'}, status=400)
 
-
-import os
-from dotenv import load_dotenv
-
-
-# Extract Data
-            
-
-
-        
-# views.py
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -412,7 +375,8 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import seaborn as sns
-
+import pandas as pd
+import calendar
 
 def upload_and_view_charts(request):
     fig_html_list = []
@@ -459,7 +423,7 @@ def handle_instagram_data(csv_raw, sponsored, post_type, time_duration):
 
     # Define time categories and ordering
     order_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    order_months = list(calendar.month_name)[1:]  # Skip the empty string at index 0
+    order_months = list(calendar.month_name)[1:]  # ['January', ..., 'December']
     time_categories = {
         "month": ("Month", 'Month', order_months),
         "day_of_week": ("Day of the Week", 'Day of Upload', order_days),
@@ -480,8 +444,8 @@ def handle_instagram_data(csv_raw, sponsored, post_type, time_duration):
     palette_idx += 1
 
     # Ensure the time column is correctly ordered if necessary
-    if (time_order):
-        csv_raw.loc[:, time_col] = pd.Categorical(csv_raw[time_col], categories=time_order, ordered=True)
+    if time_order:
+        csv_raw[time_col] = pd.Categorical(csv_raw[time_col], categories=time_order, ordered=True)
 
     # Create count plot for the selected category and time feature
     count_title = f'Number of Posts by {time_name}'
@@ -492,6 +456,11 @@ def handle_instagram_data(csv_raw, sponsored, post_type, time_duration):
 
     # Create engagement plot (likes vs comments) for the selected category and time feature
     grouped_data = csv_raw.groupby(time_col, observed=True)[['Likes', 'Comments']].mean().reset_index()
+
+    # Ensure engagement graph is correctly ordered
+    grouped_data[time_col] = pd.Categorical(grouped_data[time_col], categories=time_order, ordered=True)
+    grouped_data = grouped_data.sort_values(by=time_col)
+
     engagement_title = f'Average Engagement by {time_name}'
     engagement_xlabel = time_name
     engagement_ylabel = 'Average Engagement'
@@ -534,116 +503,48 @@ def plot_to_html(fig):
     """
     Convert a Matplotlib figure to an HTML img tag with responsive styling.
     """
-    buffer = BytesIO()
+    buffer = io.BytesIO()
     fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)  # Adjust dpi for better resolution
     buffer.seek(0)
     img_str = base64.b64encode(buffer.read()).decode('utf-8')
     buffer.close()
     return f"<img src='data:image/png;base64,{img_str}' style='max-width: 100%; height: auto;'/>"
 
-import matplotlib.pyplot as plt
 
-def handle_linkedin_data(df):
+
+
+
+
+#----------------------------------------------------------------------------------------------
+
+def upload_and_view_charts_analyst(request):
     fig_html_list = []
+    if request.method == 'POST' and 'csv_file' in request.FILES:
+        try:
+            csv_file = request.FILES['csv_file']
+            platform = request.POST.get('platform')
+            sponsored = request.POST.get('sponsored')
+            post_type = request.POST.get('post_type')
+            time_duration = request.POST.get('time_duration')
+            df = pd.read_csv(csv_file)
 
-    # Chart 1: Company distribution (Bar Chart)
-    if 'Company_Name' in df.columns:
-        company_counts = df['Company_Name'].value_counts().reset_index()  # 重置索引
-    company_counts.columns = ['Company Name', 'Count']  # 重命名列
-    fig1 = px.bar(
-        company_counts,
-        x='Company Name',  # 使用正确的列名
-        y='Count',
-        title='Company Distribution',
-        labels={'Company Name': 'Company Name', 'Count': 'Count'}
-    )
-    fig_html_list.append(fig1.to_html(full_html=False))
+            platform_handlers = {
+                'instagram': handle_instagram_data
+            }
 
-    # Chart 2: Class distribution (Bar Chart)
-    if 'Class' in df.columns:
-        class_counts = df['Class'].value_counts().reset_index()
-        class_counts.columns = ['Class', 'Count']
-        fig2 = px.bar(
-            class_counts,
-            x='Class',
-            y='Count',
-            title='Class Distribution',
-            labels={'Class': 'Class', 'Count': 'Count'}
-        )
-        fig_html_list.append(fig2.to_html(full_html=False))
+            handler = platform_handlers.get(platform)
+            if handler:
+                fig_html_list = handler(df, sponsored, post_type, time_duration)
+            else:
+                fig_html_list = [f"<div>Error: Unknown platform '{platform}'</div>"]
+        except Exception as e:
+            fig_html_list = [f"<div>Error processing the file: {str(e)}</div>"]
 
-    # Chart 3: Job distribution by location (Pie Chart)
-    if 'Location' in df.columns:
-        location_counts = df['Location'].value_counts().reset_index()
-        location_counts.columns = ['Location', 'Count']
-        fig3 = px.pie(
-            location_counts,
-            names='Location',
-            values='Count',
-            title='Job Distribution by Location',
-        )
-        fig_html_list.append(fig3.to_html(full_html=False))
-
-    # Chart 4: Skill demand distribution (Bar Chart)
-    skill_columns = [
-        'PYTHON', 'C++', 'JAVA', 'HADOOP', 'SCALA', 'FLASK', 'PANDAS',
-        'SPARK', 'NUMPY', 'PHP', 'SQL', 'MYSQL', 'CSS', 'MONGODB', 'NLTK',
-        'TENSORFLOW', 'LINUX', 'RUBY', 'JAVASCRIPT', 'DJANGO', 'REACT',
-        'REACTJS', 'AI', 'UI', 'TABLEAU', 'NODEJS', 'EXCEL', 'POWER BI',
-        'SELENIUM', 'HTML', 'ML'
-    ]
-    if set(skill_columns).intersection(df.columns):
-        skill_counts = {skill: df[skill].sum() for skill in skill_columns if skill in df.columns}
-        fig4 = px.bar(
-            x=list(skill_counts.keys()),
-            y=list(skill_counts.values()),
-            title='Skill Demand Distribution',
-            labels={'x': 'Skill', 'y': 'Demand Count'}
-        )
-        fig_html_list.append(fig4.to_html(full_html=False))
-
-    # Chart 5: Followers count distribution by company (Bar Chart)
-    if 'LinkedIn_Followers' in df.columns and 'Company_Name' in df.columns:
-        followers_by_company = df.groupby('Company_Name')['LinkedIn_Followers'].sum().reset_index()
-        fig5 = px.bar(
-            followers_by_company.sort_values('LinkedIn_Followers', ascending=False),
-            x='Company_Name',
-            y='LinkedIn_Followers',
-            title='Followers Count by Company',
-            labels={'Company_Name': 'Company Name', 'LinkedIn_Followers': 'Followers Count'}
-        )
-        fig_html_list.append(fig5.to_html(full_html=False))
-
-    # Chart 6: Industry distribution (Pie Chart)
-    if 'Company_Name' in df.columns and 'LinkedIn_Followers' in df.columns:
-        # Group by 'Company_Name' and sum up 'LinkedIn_Followers'
-        followers_by_company = df.groupby('Company_Name')['LinkedIn_Followers'].sum()
-
-        # Create horizontal bar chart
-        followers_by_company.sort_values(ascending=False).plot(kind='barh', figsize=(10, 6), color='skyblue')
-
-        # Add title and labels
-        plt.title('LinkedIn Followers by Company')
-        plt.xlabel('LinkedIn Followers')
-        plt.ylabel('Company Name')
-
-        # Show the plot
-        plt.tight_layout()
-        plt.show()
-
-    return fig_html_list
+    return render(request, 'main/upload_and_view_charts_analyst.html', {'fig_html_list': fig_html_list})
 
 
 
-
-
-
-
-
-
-
- 
-                                        
+                                    
 #----------------------------GRAPH VISUALIZATION----------------------------
 
 
@@ -714,7 +615,7 @@ def testimonial_page(request):
                 print("Testimonial Saved:", testimonial)  # Debug log
             except UserAccount.DoesNotExist:
                 print("User not found")  # Debug log
-                return redirect('login_rate')  # Redirect to login if user not found
+                  # Redirect to login if user not found
             return redirect('marketing_page')  # Redirect to marketing page
     return render(request, 'main/testimonial_page.html')
 
@@ -894,42 +795,24 @@ def get_client_ip(request):
 
 #view user profile
 def view_profile_businessman(request):
-    # Check if user is authenticated and has the correct role
-    if not request.session.get('is_authenticated'):
-        return redirect('admin_login')
     
-    # Verify user role
-    if request.session.get('role') != 'businessman':
-        return redirect('admin_login')
-    
-    # Get username from session
-    username = request.session.get('username')
-    # Filter profile based on the logged-in user's data
-    user_profile = Profile.objects.filter(role='businessman', first_name=username)
-    return render(request, 'main/bus_profile.html', {'user_profile': user_profile})
+    user_profile  = Profile.objects.filter(role='businessman')
+    print(user_profile)
+    return render(request, 'main/bus_profile.html', {'user_profile' : user_profile})
+
+
+
+
 
 def view_profile_content_creator(request):
-    if not request.session.get('is_authenticated'):
-        return redirect('admin_login')
-    
-    if request.session.get('role') != 'content_creator':
-        return redirect('admin_login')
-    
-    username = request.session.get('username')
-    user_profile = Profile.objects.filter(role='content_creator', first_name=username)
-    return render(request, 'main/view_creator_profile.html', {'user_profile': user_profile})
+    user_profile  = Profile.objects.filter(role='content_creator')
+    print(f"Content Creator Profiles : {user_profile}")
+    return render(request, 'main/view_creator_profile.html', {'user_profile' : user_profile})
 
 def view_profile_data_analyst(request):
-    if not request.session.get('is_authenticated'):
-        return redirect('admin_login')
-    
-    if request.session.get('role') != 'data_analyst':
-        return redirect('admin_login')
-    
-    username = request.session.get('username')
-    user_profile = Profile.objects.filter(role='data_analyst', first_name=username)
-    return render(request, 'main/view_analyst_profile.html', {'user_profile': user_profile})
-
+    user_profile = Profile.objects.filter(role='data_analyst')
+    print(f"Data Analyst Profiles : {user_profile}")
+    return render(request, 'main/view_analyst_profile.html', {'user_profile' : user_profile})
 
 ## update news
 
@@ -1195,23 +1078,103 @@ def graph_view(request):
         "centrality_results": top_10_nodes
     }
     
-    return render(request, 'main/graph.html', context)
+    return render(request, 'main/graph.html', context)                    
 
 
-'''
+
 @csrf_exempt
-def save_visualization(request):
-    if request.method == 'POST':
-        image = request.FILES.get('image')
-        if image:
-            with open('visualization.png', 'wb') as f:
-                for chunk in image.chunks():
-                    f.write(chunk)
-            return JsonResponse({'status': 'success', 'message': 'Visualization saved successfully!'})
-        else:
-            return JsonResponse({'status': 'error', 'message': 'No image provided.'}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
-'''
+def upload_csv_analyst(request):
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        csv_file = request.FILES['csv_file']
+        file_wrapper = TextIOWrapper(csv_file.file, encoding='utf-8')
+        csv_reader = csv.reader(file_wrapper)
+        header = next(csv_reader)  # Read the header
+        
+        # Process the CSV file as needed
+        store_csv_to_neo4j(csv_reader)  # Ensure the CSV is stored in Neo4j
+        return redirect('graph_view_analyst')  # Redirect to graph_view after successful upload
+    return render(request, 'main/neoinsert3.html')  # Render the form for GET requests
+
+def store_csv_to_neo4j(csv_reader):
+    driver = settings.NEO4J_DRIVER
+    
+    with driver.session() as session:
+        for row in csv_reader:
+            try:
+                hashtags = ast.literal_eval(row[9])  # Assuming the hashtags are in the 10th column (index 9)
+                if not isinstance(hashtags, list):
+                    raise ValueError("Hashtags column is not a list")
+            except (ValueError, SyntaxError, IndexError) as e:
+                print(f"Error processing row {row}: {e}")
+                hashtags = []  # Handle empty or invalid hashtags column
+            
+            print(f"Processed hashtags: {hashtags}")
+            
+            for i in range(len(hashtags)):
+                for j in range(i + 1, len(hashtags)):
+                    hashtag1, hashtag2 = hashtags[i], hashtags[j]
+                    print(f"Creating relationship between {hashtag1} and {hashtag2}")
+                    session.run(
+                        "MERGE (h1:Hashtag {name: $hashtag1}) "
+                        "MERGE (h2:Hashtag {name: $hashtag2}) "
+                        "MERGE (h1)-[:CO_OCCURS_WITH]->(h2)",
+                        hashtag1=hashtag1, hashtag2=hashtag2
+                    )
+
+def graph_view_analyst(request):
+    driver = settings.NEO4J_DRIVER
+    
+    with driver.session() as session:
+        result = session.run("MATCH p=()-[r:CO_OCCURS_WITH]->() RETURN p")
+        
+        nodes = []
+        edges = []
+        node_ids = set()
+        
+        for record in result:
+            for node in record["p"].nodes:
+                if node.id not in node_ids:
+                    nodes.append({"id": node.id, "label": node["name"]})
+                    node_ids.add(node.id)
+            for rel in record["p"].relationships:
+                edges.append({"from": rel.start_node.id, "to": rel.end_node.id})
+    
+    if not nodes:
+        return JsonResponse({'error': 'Graph is empty. Upload data first.'}, status=400)
+    
+    G = nx.Graph()
+    for node in nodes:
+        G.add_node(node['id'])
+    for edge in edges:
+        G.add_edge(edge['from'], edge['to'])
+    
+    betweenness = nx.betweenness_centrality(G)
+    degree = nx.degree_centrality(G)
+    closeness = nx.closeness_centrality(G)
+    try:
+        eigenvector = nx.eigenvector_centrality(G, max_iter=1000)
+    except nx.PowerIterationFailedConvergence:
+        eigenvector = {node: 0 for node in G.nodes}
+    
+    for node in nodes:
+        node['betweenness'] = betweenness[node['id']]
+        node['eigenvector'] = eigenvector[node['id']]
+        node['degree'] = degree[node['id']]
+        node['closeness'] = closeness[node['id']]
+    
+    top_10_nodes = sorted(nodes, key=lambda x: x['betweenness'], reverse=True)[:10]
+    
+    context = {
+        "nodes": json.dumps(nodes),
+        "edges": json.dumps(edges),
+        "centrality_results": top_10_nodes
+    }
+    
+    return render(request, 'main/graph3.html', context)
+
+
+
+
 
 
 import os
@@ -1226,6 +1189,20 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def save_visualization(request):
+    if request.method == 'POST':
+        image = request.FILES.get('image')
+        if image:
+            with open('visualization.png', 'wb') as f:
+                for chunk in image.chunks():
+                    f.write(chunk)
+            return JsonResponse({'status': 'success', 'message': 'Visualization saved successfully!'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'No image provided.'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+@csrf_exempt
+def save_visualization_analyst(request):
     if request.method == 'POST':
         image = request.FILES.get('image')
         if image:
@@ -1277,11 +1254,10 @@ def train_model(request):
             file_wrapper = TextIOWrapper(csv_file.file, encoding='utf-8')
             df = pd.read_csv(file_wrapper)
 
-            # **Data Cleaning**
+            # **Model Training Logic (Unchanged)**
             df['Location'] = df['Location'].str.strip()
             df['Industry'] = df['Industry'].str.strip()
 
-            # **Define Skill Columns**
             skill_columns = [
                 'PYTHON', 'C++', 'JAVA', 'HADOOP', 'SCALA', 'FLASK', 'PANDAS',
                 'SPARK', 'NUMPY', 'PHP', 'SQL', 'MYSQL', 'CSS', 'MONGODB', 'NLTK',
@@ -1290,7 +1266,7 @@ def train_model(request):
                 'SELENIUM', 'HTML', 'ML'
             ]
 
-            # **Select Features and Target Variables**
+            # **Preprocessing**
             X = df[['Location', 'Industry']]
             y = df[skill_columns].fillna(0).astype(int)
 
@@ -1313,7 +1289,7 @@ def train_model(request):
             y_resampled = y_resampled.str.split('-', expand=True).astype(int)
             y_resampled.columns = skill_columns
 
-            # **Split Training and Test Set**
+            # **Train-Test Split**
             X_train, X_test, y_train, y_test = train_test_split(
                 X_resampled, y_resampled, test_size=0.2, random_state=42
             )
@@ -1326,22 +1302,22 @@ def train_model(request):
                         )) 
             model.fit(X_train, y_train)
 
-            # **Calculate Accuracy**
+            # **Compute Model Accuracy**
             y_pred = model.predict(X_test)
             accuracy = np.mean([accuracy_score(y_test.iloc[:, i], y_pred[:, i]) for i in range(y_test.shape[1])])
 
-            # **Save All Location Values**
+            # **Save All Locations**
             all_locations = list(label_encoder_location.classes_)
 
-            # **Pass Data to Template**
+            # **Pass Accuracy to Template**
             context['accuracy'] = round(accuracy, 4)
             context['message'] = "Model training completed!"
 
-            print(f"DEBUG: Model Accuracy = {context['accuracy']}")  # Debugging line
+            print(f"DEBUG: Model Accuracy = {context['accuracy']}")  # Debugging output
 
         except Exception as e:
             context['error'] = f'Data processing error: {str(e)}'
-    
+
     return render(request, 'main/linkedin_preds.html', context)
 
 
@@ -1433,7 +1409,13 @@ import plotly.express as px
 import plotly.io as pio
 
 def handle_linkedin_data(request):
-    file_path = "C:/Users/Welcome/Downloads/snape/snape/myproject/final_data.csv"  # Update with actual path
+    # Dynamically get the file path from MEDIA_ROOT
+    file_path = os.path.join(settings.MEDIA_ROOT, "final_data_cleaned.csv")
+
+    # Check if file exists before reading
+    if not os.path.exists(file_path):
+        return render(request, "main/linked_view_charts.html", {"error": "CSV file not found!"})
+
     df = pd.read_csv(file_path)
 
     # Get unique locations for the dropdown filter
@@ -1692,4 +1674,3 @@ def delete_marketing_video(request):
             video.delete()
             messages.success(request, 'Marketing video deleted successfully!')
     return redirect('manage_marketing_video')
-```

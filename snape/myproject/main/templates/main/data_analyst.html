@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Creator Dashboard</title>
+    <title>Data Analyst Dashboard</title>
     <style>
        body {
             font-family: Arial, sans-serif;
@@ -89,15 +89,16 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <h2>Dashboard</h2>
-       
-            <a href="#" class="menu-item active" data-url="{% url 'view_profile_data_analyst' %}">My Profile</a>
-            <a href="#" class="menu-item" data-url="{% url 'upload_and_view_charts' %}">Upload File</a>
-            <a href="#" class="menu-item" data-url="{% url 'scrape_profile' %}">Scrape Profile</a>
-            <a href="#" class="menu-item" data-url="{% url 'preds' %}">Edit rows and columns</a>
-            <a href="#" class="menu-item" data-url="/predict_engagement/">Prediction Model</a>
-            <a href="#" class="menu-item" data-url="{% url 'upload_csv' %}">Upload CSV to Neo4j</a>
-            <a href="{% url 'testimonial_page' %}">Submit Testimonial</a>
-            <a href="{% url 'admin_logout' %}">Logout</a>
+        
+        <a href="#" class="menu-item active" data-url="{% url 'view_profile_content_creator' %}">My Profile</a>
+        <a href="#" class="menu-item" data-url="{% url 'upload_and_view_charts' %}">View Visualization</a>
+        <a href="#" class="menu-item" data-url="{% url 'scrape_profile' %}">Scrape Profile</a>
+        <a href="#" class="menu-item" data-url="{% url 'preds' %}">Data Cleaning</a>
+        <a href="#" class="menu-item" data-url="/predict_engagement/">Prediction Model</a>
+        <a href="#" class="menu-item" data-url="{% url 'upload_csv' %}">Upload CSV to Neo4j</a>
+        <a href="{% url 'testimonial_page' %}">Submit Testimonial</a>
+        <a href="{% url 'admin_logout' %}">Logout</a>
+        
     </div>
 
     <!-- Main Content Area -->

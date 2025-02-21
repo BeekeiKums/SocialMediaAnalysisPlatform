@@ -25,13 +25,15 @@ load_dotenv(ENV_PATH)
 NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://fa57a3a3.databases.neo4j.io")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "mUB4QR3MrFW6x3OUeHiFlPI-WzTprL_P08DM9HiUFi8")
+SECRET_KEY = "*$3b_xkx*_7-c2bww-rh_sg5$^6-8kwfainfk&*a2_!@u74a06" 
 
+"""
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # Ensure the secret key is properly loaded
 if not SECRET_KEY:
     raise ValueError("🚨 ERROR: DJANGO_SECRET_KEY is missing or not loaded correctly!")
-
+"""
 import os
 
 #print(os.environ)
@@ -40,7 +42,7 @@ import os
 MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://aunggyi:aung754826@cluster0.pim44.mongodb.net/yeryer")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "yeryer")
 
-DEBUG=False
+DEBUG=True
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "socialmediaanalysisplatform.onrender.com"]  # Change this to your domain or Render URL in production
 

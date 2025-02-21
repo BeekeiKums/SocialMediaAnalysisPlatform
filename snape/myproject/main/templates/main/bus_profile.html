@@ -16,13 +16,12 @@
         }
 
         .container {
-            max-width: 1200px; /* Increased from 900px */
+            max-width: 900px;
             margin: 50px auto;
             padding: 20px;
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow-x: auto; /* Add horizontal scroll if needed */
         }
 
         h1 {
@@ -33,7 +32,6 @@
         }
 
         table {
-            min-width: 1100px; /* Ensure table has minimum width */
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
@@ -80,10 +78,9 @@
         <table>
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>First Name</th>
                     <th>Last Name</th>
-                    <th>Email</th>
-                    <th>Password</th>
                     <th>Company</th>
                     <th>Timezone</th>
                     <th>Actions</th>
@@ -92,19 +89,19 @@
             <tbody>
                 {% for profile in user_profile %}
                 <tr data-id="{{ profile.profile_id}}">
+                    <td>{{ forloop.counter }}</td>
                     <td>{{ profile.first_name }}</td>
                     <td>{{ profile.last_name }}</td>
-                    <td>{{ profile.email }}</td>
-                    <td>{{ profile.password }}</td>
                     <td>{{ profile.company }}</td>
                     <td>{{ profile.timezone }}</td>
                     <td>
                         <a href="#" class="action-btn">Edit</a>
+                        <a href="#" class="action-btn delete-btn" style="background-color: #dc3545;">Delete</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align: center;">No profiles found</td>
+                    <td colspan="6" style="text-align: center;">No profiles found</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -134,19 +131,17 @@
                 // Change button text to "Save"
                 editButton.textContent = 'Save';
     
-                for (let i = 0; i <= 5; i++) {
+                for (let i = 1; i <= 4; i++) {
                     const cell = cells[i];
                     const value = cell.textContent.trim();
                     cell.innerHTML = `<input type="text" value="${value}" />`;
                 }
             } else {
                 const updatedData = {
-                    first_name: cells[0].querySelector('input').value,
-                    last_name: cells[1].querySelector('input').value,
-                    email: cells[2].querySelector('input').value,
-                    password: cells[3].querySelector('input').value,
-                    company: cells[4].querySelector('input').value,
-                    timezone: cells[5].querySelector('input').value,
+                    first_name: cells[1].querySelector('input').value,
+                    last_name: cells[2].querySelector('input').value,
+                    company: cells[3].querySelector('input').value,
+                    timezone: cells[4].querySelector('input').value,
                 };
     
                 console.log('Updated Data:', updatedData); // Debugging
@@ -163,12 +158,10 @@
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.status === 'success') {
-                            cells[0].textContent = updatedData.first_name;
-                            cells[1].textContent = updatedData.last_name;
-                            cells[2].textContent = updatedData.email;
-                            cells[3].textContent = updatedData.password;
-                            cells[4].textContent = updatedData.company;
-                            cells[5].textContent = updatedData.timezone;
+                            cells[1].textContent = updatedData.first_name;
+                            cells[2].textContent = updatedData.last_name;
+                            cells[3].textContent = updatedData.company;
+                            cells[4].textContent = updatedData.timezone;
     
                             editButton.textContent = 'Edit';
                             alert('Profile updated successfully.');
@@ -185,5 +178,3 @@
     });
 
 </script>
-</body>
-</html>
