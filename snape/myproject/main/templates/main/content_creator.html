@@ -8,8 +8,8 @@
        body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            display: flex;
+            height: 100vh;
         }
 
         /* Sidebar styling */
@@ -17,13 +17,15 @@
             width: 250px;
             background-color: #2c3e50;
             color: #fff;
-            position: fixed;
-            height: 100vh;
-            left: 0;
-            top: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            height : 100vh;
+            position : fixed;
+            left : 0;
+            top : 0;
         }
 
         .sidebar h2 {
@@ -57,10 +59,10 @@
 
         /* Main content styling */
         .main-content {
-            margin-left: 250px; /* Match sidebar width */
-            padding: 20px;
-            min-height: calc(100vh - 60px); /* Account for footer */
+            flex-grow: 1;
             background-color: #f9f9f9;
+            padding: 20px;
+            overflow-y: auto;
         }
 
         .main-content .loading {
@@ -70,14 +72,13 @@
         }
 
         footer {
-            margin-left: 250px; /* Match sidebar width */
             text-align: center;
             background-color: #2c3e50;
             color: #fff;
             padding: 10px;
             position: fixed;
             bottom: 0;
-            width: calc(100% - 250px); /* Adjust width to account for sidebar */
+            width: 100%;
         }
              
            
@@ -94,7 +95,7 @@
         <a href="#" class="menu-item" data-url="{% url 'scrape_profile' %}">Scrape Profile</a>
         <a href="#" class="menu-item" data-url="{% url 'preds' %}">Data Cleaning</a>
         <a href="#" class="menu-item" data-url="/predict_engagement/">Prediction Model</a>
-        <a href="#" class="menu-item" data-url="{% url 'upload_csv' %}">Upload CSV to Neo4j</a>
+        <a href="#" class="menu-item active" data-url="{% url 'upload_csv' %}">Upload CSV to Neo4j</a>
         <a href="{% url 'testimonial_page' %}">Submit Testimonial</a>
         <a href="{% url 'admin_logout' %}">Logout</a>
         
@@ -112,22 +113,29 @@
 
     <script>
         $(document).ready(function () {
-            // Set initial active state and load default content
-            const defaultMenuItem = $('.menu-item[data-url="{% url "view_profile_content_creator" %}"]');
-            defaultMenuItem.addClass('active');
-            loadContent(defaultMenuItem.data('url'));
+            // Load default content (My Profile) when the page loads
+            loadContent("{% url 'view_profile_content_creator' %}");
 
-            // Improve click handler stability
-            $('.menu-item').not('[href="{% url "admin_logout" %}"]').on('click', function (e) {
+
+           
+            // Attach click event to menu items
+            $('.menu-item').not('.logout-link').on('click', function (e) {
                 e.preventDefault();
-                if ($(this).hasClass('loading')) return; // Prevent double-clicks
 
-                $('.menu-item').removeClass('active loading');
-                $(this).addClass('active loading');
+                // Remove active class from all menu items
+                $('.menu-item').removeClass('active');
 
+                // Add active class to clicked menu item
+                $(this).addClass('active');
+
+                // Get URL from data attribute
                 const url = $(this).data('url');
+
+                // Load content dynamically
                 loadContent(url);
             });
+
+            
 
             function loadContent(url) {
                 const contentArea = $('#main-content');
@@ -138,11 +146,9 @@
                     method: 'GET',
                     success: function (data) {
                         contentArea.html(data);
-                        $('.menu-item').removeClass('loading');
                     },
                     error: function (xhr, status, error) {
                         contentArea.html('<div class="loading">Failed to load content. Please try again later.</div>');
-                        $('.menu-item').removeClass('loading');
                     }
                 });
             }
