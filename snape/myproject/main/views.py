@@ -1087,11 +1087,11 @@ def upload_csv_analyst(request):
         header = next(csv_reader)  # Read the header
         
         # Process the CSV file as needed
-        store_csv_to_neo4j(csv_reader)  # Ensure the CSV is stored in Neo4j
+        store_csv_to_neo4j2(csv_reader)  # Ensure the CSV is stored in Neo4j
         return redirect('graph_view_analyst')  # Redirect to graph_view after successful upload
     return render(request, 'main/neoinsert3.html')  # Render the form for GET requests
 
-def store_csv_to_neo4j(csv_reader):
+def store_csv_to_neo4j2(csv_reader):
     driver = settings.NEO4J_DRIVER
     
     with driver.session() as session:

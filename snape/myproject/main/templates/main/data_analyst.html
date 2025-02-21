@@ -90,12 +90,12 @@
     <div class="sidebar">
         <h2>Dashboard</h2>
         
-        <a href="#" class="menu-item active" data-url="{% url 'view_profile_content_creator' %}">My Profile</a>
+        <a href="#" class="menu-item active" data-url="{% url 'view_profile_data_analyst' %}">My Profile</a>
         <a href="#" class="menu-item" data-url="{% url 'upload_and_view_charts' %}">View Visualization</a>
         <a href="#" class="menu-item" data-url="{% url 'scrape_profile' %}">Scrape Profile</a>
         <a href="#" class="menu-item" data-url="{% url 'preds' %}">Data Cleaning</a>
         <a href="#" class="menu-item" data-url="/predict_engagement/">Prediction Model</a>
-        <a href="#" class="menu-item" data-url="{% url 'upload_csv' %}">Upload CSV to Neo4j</a>
+        <a href="#" class="menu-item" data-url="{% url 'upload_csv_analyst' %}">Upload CSV to Neo4j</a>
         <a href="{% url 'testimonial_page' %}">Submit Testimonial</a>
         <a href="{% url 'admin_logout' %}">Logout</a>
         
@@ -108,7 +108,7 @@
 
     <!-- Footer -->
     <footer>
-        © 2024 Content Creator Dashboard. All rights reserved.
+        © 2024 Data Analyst Dashboard. All rights reserved.
     </footer>
 
     <script>

@@ -61,6 +61,30 @@
     #saveButton:hover {
         background-color: #218838;
     }
+
+
+    .back-button {
+        display: inline-block;
+        background-color: #ff6b6b;
+        color: white;
+        font-size: 16px;
+        padding: 12px 18px;
+        border-radius: 8px;
+        text-decoration: none; /* Remove underline */
+        font-weight: bold;
+        width: 200px;
+        text-align: center;
+        margin-left : 700px;
+        transition: background 0.3s, transform 0.2s;
+        margin-top: 20px;
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+    
+    .back-button:hover {
+        background-color: #e63946;
+        transform: scale(1.05);
+    }
 </style>
 <body>
     <h1>Neo4j Graph Visualization</h1>
@@ -77,6 +101,9 @@
 
     <!-- Save Button -->
     <button id="saveButton" onclick="saveGraph()">Save Graph as Image</button>
+
+    <!-- Back Button -->
+    <a href="{% url 'businessman_dashboard' %}" class="back-button">⬅ Back To Dashboard</a>
 
     <script>
         // Function to load the graph based on the selected query type
