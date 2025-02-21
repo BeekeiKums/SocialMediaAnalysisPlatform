@@ -184,6 +184,100 @@
     </div>
 </div>
 
+<script>
+$(document).ready(function() {
+    // Search functionality - Updated for better reliability
+    $('.search-box').on('input', function() {  // Changed from 'keyup' to 'input'
+        const searchTerm = $(this).val().toLowerCase().trim();
+        
+        $('.category-table tbody tr').each(function() {
+            const row = $(this);
+            const name = row.find('td:eq(1)').text().toLowerCase();
+            const description = row.find('td:eq(2)').text().toLowerCase();
+            
+            // Show/hide based on both name and description match
+            if (searchTerm === '' || name.includes(searchTerm) || description.includes(searchTerm)) {
+                row.show();
+            } else {
+                row.hide();
+            }
+        });
+    });
+
+    // Filter dropdown functionality - Updated to work with search
+    $('.filter-dropdown').on('change', function() {
+        const selectedType = $(this).val().toLowerCase();
+        const searchTerm = $('.search-box').val().toLowerCase().trim();
+        
+        $('.category-table tbody tr').each(function() {
+            const row = $(this);
+            const name = row.find('td:eq(1)').text().toLowerCase();
+            const description = row.find('td:eq(2)').text().toLowerCase();
+            
+            const matchesSearch = searchTerm === '' || 
+                                name.includes(searchTerm) || 
+                                description.includes(searchTerm);
+            const matchesFilter = selectedType === 'all' || 
+                                description.includes(selectedType.toLowerCase());
+            
+            // Show only if matches both search and filter
+            row.toggle(matchesSearch && matchesFilter);
+        });
+    });
+
+    // Edit button click handler
+    $('.edit-btn').click(function(event) {
+        event.preventDefault();
+        const button = $(this);
+        const row = button.closest('tr');
+        const categoryId = button.data('id');
+
+        if (button.text() === 'Update') {
+            // Switch to edit mode
+            button.text('Save');
+            
+            // Get current values
+            const nameCell = row.find('td:eq(1)');
+            const descriptionCell = row.find('td:eq(2)');
+            
+            // Replace text with input fields
+            const nameValue = nameCell.text();
+            const descriptionValue = descriptionCell.text();
+            
+            nameCell.html(`<input type="text" value="${nameValue}" class="edit-input">`);
+            descriptionCell.html(`<input type="text" value="${descriptionValue}" class="edit-input">`);
+        } else {
+            // Save changes
+            const nameInput = row.find('td:eq(1) input').val();
+            const descriptionInput = row.find('td:eq(2) input').val();
+            
+            $.ajax({
+                url: `/update_category/${categoryId}/`,
+                method: 'POST',
+                data: {
+                    name: nameInput,
+                    description: descriptionInput,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Update the table cells with new values
+                        row.find('td:eq(1)').text(nameInput);
+                        row.find('td:eq(2)').text(descriptionInput);
+                        button.text('Update');
+                        alert('Category updated successfully!');
+                    } else {
+                        alert('Failed to update category. Please try again.');
+                    }
+                },
+                error: function() {
+                    alert('Error updating category');
+                }
+            });
+        }
+    });
+});
+</script>
 
 <div id="edit-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #f9f9f9; padding: 20px; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
     <h3>Edit Category</h3>
@@ -208,5 +302,6 @@
 
 </body>
 </html>
+
 
 
