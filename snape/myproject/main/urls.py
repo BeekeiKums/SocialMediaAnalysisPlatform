@@ -101,5 +101,6 @@ urlpatterns = [
     path('linkedin_graph_visualization/', views.linkedin_graph_visualization, name='linkedin_graph_visualization'),
     path('linkedin_save_visualization/', views.linkedin_save_graph_visualization, name='linkedin_save_visualization'),
     
+    # Manage marketing video
     path('manage-marketing-video/', views.manage_marketing_video, name='manage_marketing_video'),
 ]
