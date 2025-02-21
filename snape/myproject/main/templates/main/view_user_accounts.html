@@ -247,60 +247,6 @@
         </form>
     </div>
 
-    <!-- Add this before closing body tag -->
-    <script>
-        $(document).ready(function() {
-            // Search functionality
-            $('.search-box').on('keyup', function() {
-                const searchTerm = $(this).val().toLowerCase();
-                $('.user-table tbody tr').each(function() {
-                    const username = $(this).find('td:eq(1)').text().toLowerCase();
-                    const email = $(this).find('td:eq(2)').text().toLowerCase();
-                    const role = $(this).find('td:eq(3)').text().toLowerCase();
-                    
-                    if (username.includes(searchTerm) || 
-                        email.includes(searchTerm) || 
-                        role.includes(searchTerm)) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
-
-            // Filter dropdown functionality
-            $('.filter-dropdown').on('change', function() {
-                const selectedRole = $(this).val().toLowerCase();
-                
-                $('.user-table tbody tr').each(function() {
-                    const role = $(this).find('td:eq(3)').text().toLowerCase();
-                    
-                    if (selectedRole === 'all' || role === selectedRole) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
-
-            // Edit modal functionality
-            $('.edit-btn').click(function() {
-                const userId = $(this).data('id');
-                const username = $(this).data('username');
-                const email = $(this).data('email');
-                
-                $('#user-id').val(userId);
-                $('#username').val(username);
-                $('#email').val(email);
-                
-                $('#edit-modal').show();
-            });
-
-            $('#close-modal').click(function() {
-                $('#edit-modal').hide();
-            });
-        });
-    </script>
 </body>
 </html>
 </body>
