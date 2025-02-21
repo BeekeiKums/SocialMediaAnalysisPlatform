@@ -2456,3 +2456,7 @@ Not Found: /favicon.ico
 "GET /favicon.ico HTTP/1.1" 404 12358
 Not Found: /favicon.ico
 "GET /favicon.ico HTTP/1.1" 404 12358
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 12685
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 12685
