@@ -188,5 +188,4 @@ LOGGING = {
 }
 
 
-DATA_DIR = os.path.join(BASE_DIR, 'data')  # Define a data directory
-file_path = os.path.join(DATA_DIR, "final_data_cleaned.csv")
+

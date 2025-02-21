@@ -373,15 +373,20 @@ from django.contrib import messages
 import networkx as nx
 import matplotlib
 matplotlib.use('Agg')
+import os
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+import seaborn as sns
 import matplotlib.pyplot as plt
+import calendar
 import io
 import base64
-import seaborn as sns
-import pandas as pd
-import calendar
+from django.shortcuts import render
 
 def upload_and_view_charts(request):
     fig_html_list = []
+    
     if request.method == 'POST' and 'csv_file' in request.FILES:
         try:
             csv_file = request.FILES['csv_file']
@@ -408,24 +413,22 @@ def upload_and_view_charts(request):
 def handle_instagram_data(csv_raw, sponsored, post_type, time_duration):
     fig_html_list = []
 
-    # Clean the 'Likes' column by converting to numeric
+    # Convert 'Likes' to numeric and drop missing values
     csv_raw['Likes'] = pd.to_numeric(csv_raw['Likes'], errors='coerce')
-
-    # Handle missing values in 'Hour'
     csv_raw = csv_raw.dropna(subset=['Hour'])
 
     # Convert numeric month to month name
     csv_raw['Month'] = csv_raw['Month'].apply(lambda x: calendar.month_name[int(x)])
 
-    # Filter data based on selections
+    # Filtering Data
     if sponsored != 'all':
         csv_raw = csv_raw[csv_raw['Sponsored'] == (sponsored == 'yes')]
     if post_type != 'all':
         csv_raw = csv_raw[csv_raw['Is Video'] == (post_type == 'video')]
 
-    # Define time categories and ordering
+    # Define time categories
     order_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    order_months = list(calendar.month_name)[1:]  # ['January', ..., 'December']
+    order_months = list(calendar.month_name)[1:]  
     time_categories = {
         "month": ("Month", 'Month', order_months),
         "day_of_week": ("Day of the Week", 'Day of Upload', order_days),
@@ -439,53 +442,41 @@ def handle_instagram_data(csv_raw, sponsored, post_type, time_duration):
         'Set1', 'Set2', 'viridis', 'coolwarm', 'pastel',
         'deep', 'muted', 'dark', 'colorblind', 'cubehelix'
     ]
-    
-    # Generate plots for the selected category and time category
     palette_idx = 0
     palette = sns.color_palette(color_palettes[palette_idx % len(color_palettes)])
     palette_idx += 1
 
-    # Ensure the time column is correctly ordered if necessary
+    # Ensure proper ordering
     if time_order:
         csv_raw[time_col] = pd.Categorical(csv_raw[time_col], categories=time_order, ordered=True)
 
-    # Create count plot for the selected category and time feature
-    count_title = f'Number of Posts by {time_name}'
-    count_xlabel = time_name
-    count_ylabel = 'Number of Posts'
-    count_plot_html = create_countplot(csv_raw, time_col, count_title, count_xlabel, count_ylabel, order=time_order, palette=palette)
+    # Create count plot (Number of Posts)
+    count_plot_html = create_countplot(csv_raw, time_col, f'Number of Posts by {time_name}', time_name, 'Number of Posts', order=time_order, palette=palette)
     fig_html_list.append(count_plot_html)
 
-    # Create engagement plot (likes vs comments) for the selected category and time feature
+    # Engagement Graph (Likes vs Comments)
     grouped_data = csv_raw.groupby(time_col, observed=True)[['Likes', 'Comments']].mean().reset_index()
-
-    # Ensure engagement graph is correctly ordered
     grouped_data[time_col] = pd.Categorical(grouped_data[time_col], categories=time_order, ordered=True)
     grouped_data = grouped_data.sort_values(by=time_col)
 
-    engagement_title = f'Average Engagement by {time_name}'
-    engagement_xlabel = time_name
-    engagement_ylabel = 'Average Engagement'
-    engagement_plot_html = create_engagement_plot(grouped_data, time_col, engagement_title, engagement_xlabel, engagement_ylabel)
+    engagement_plot_html = create_engagement_plot(grouped_data, time_col, f'Average Engagement by {time_name}', time_name, 'Average Engagement')
     fig_html_list.append(engagement_plot_html)
 
     return fig_html_list
 
-def create_engagement_plot(data, x, title, xlabel, ylabel, ax=None):
+def create_engagement_plot(data, x, title, xlabel, ylabel):
     """
-    Creates a line plot comparing likes and comments over time for engagement analysis.
+    Creates an interactive line plot comparing likes and comments over time for engagement analysis.
     """
-    fig, ax = plt.subplots(figsize=(12, 6)) if ax is None else (fig, ax)
-    sns.lineplot(x=x, y='Likes', data=data, label='Likes', marker='o', ax=ax)
-    sns.lineplot(x=x, y='Comments', data=data, label='Comments', marker='o', ax=ax)
-    ax.set_title(title)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.legend()
-    ax.grid()
-    plot_html = plot_to_html(fig)
-    plt.close(fig)
-    return plot_html
+    fig = px.line(
+        data, x=x, y=['Likes', 'Comments'],
+        labels={x: xlabel, 'value': ylabel, 'variable': 'Metric'},
+        title=title,
+        markers=True,
+        template="plotly_white",
+        hover_data={x: True, 'value': True},  # Enables hover for both X and Y values
+    )
+    return pio.to_html(fig, full_html=False)
 
 def create_countplot(data, time_col, title, xlabel, ylabel, order=None, palette="Set1"):
     """
@@ -497,6 +488,12 @@ def create_countplot(data, time_col, title, xlabel, ylabel, order=None, palette=
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     plt.xticks(rotation=45)
+
+    # Add hover functionality by displaying values above bars
+    for p in ax.patches:
+        ax.annotate(f"{int(p.get_height())}", (p.get_x() + p.get_width() / 2., p.get_height()),
+                    ha='center', va='center', xytext=(0, 9), textcoords='offset points')
+
     plot_html = plot_to_html(fig)
     plt.close(fig)
     return plot_html
@@ -506,14 +503,11 @@ def plot_to_html(fig):
     Convert a Matplotlib figure to an HTML img tag with responsive styling.
     """
     buffer = io.BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)  # Adjust dpi for better resolution
+    fig.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
     buffer.seek(0)
     img_str = base64.b64encode(buffer.read()).decode('utf-8')
     buffer.close()
     return f"<img src='data:image/png;base64,{img_str}' style='max-width: 100%; height: auto;'/>"
-
-
-
 
 
 
@@ -1405,20 +1399,37 @@ def get_job_options(request):
 
 # ----------------- Reserve for LinkedIn charts -----------------
 
-from django.shortcuts import render
+import os
 import pandas as pd
 from django.conf import settings
+from django.shortcuts import render, redirect
+from django.core.files.storage import default_storage
 import plotly.express as px
 import plotly.io as pio
 
 def handle_linkedin_data(request):
-    DATA_DIR = os.path.join(BASE_DIR, 'data')  # Define a data directory
-    file_path = os.path.join(DATA_DIR, "final_data_cleaned.csv")
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        uploaded_file = request.FILES["csv_file"]
+        
+        # Save the uploaded file to a temporary location
+        file_path = os.path.join(settings.BASE_DIR, "tmp", uploaded_file.name)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)  # Ensure directory exists
+        
+        with open(file_path, "wb+") as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
 
-    # Check if file exists before reading
-    if not os.path.exists(file_path):
-        return render(request, "main/linked_view_charts.html", {"error": "CSV file not found!"})
+        # Store file path in session for future requests
+        request.session["uploaded_csv"] = file_path
+        return redirect("linkedin_charts")  # Redirect to refresh the page with the new file
 
+    # Retrieve file path from session (if available)
+    file_path = request.session.get("uploaded_csv")
+
+    if not file_path or not os.path.exists(file_path):
+        return render(request, "main/linked_view_charts.html", {"error": "Please upload a CSV file to view visualizations."})
+
+    # Load CSV file
     df = pd.read_csv(file_path)
 
     # Get unique locations for the dropdown filter
@@ -1431,36 +1442,40 @@ def handle_linkedin_data(request):
     # Top 10 Companies by LinkedIn Followers (Filtered)
     top_companies = filtered_df.groupby("Company_Name")["LinkedIn_Followers"].max().nlargest(10).reset_index()
     fig1 = px.bar(top_companies, x='Company_Name', y='LinkedIn_Followers', title="Top 10 Companies by LinkedIn Followers", color='LinkedIn_Followers')
-    
+
     # Pie Chart for Job Levels (Filtered)
     job_levels = filtered_df["Level"].value_counts().reset_index()
     job_levels.columns = ["Job Level", "Count"]
     fig2 = px.pie(job_levels, names='Job Level', values='Count', title="Job Level Distribution")
-    
+
     # Stacked Bar Chart for Top 5 Programming Skills (Filtered)
     skill_columns = ["PYTHON", "JAVA", "SQL", "JAVASCRIPT", "DJANGO"]
     skill_counts = filtered_df[skill_columns].sum().reset_index()
     skill_counts.columns = ["Skill", "Count"]
     fig3 = px.bar(skill_counts, x='Skill', y='Count', title="Top 5 Programming Skills Demand", color='Count')
-    
+
     # Average Employee Count per Industry (Filtered)
     industry_employee_count = filtered_df.groupby("Industry")["Employee_count"].mean().reset_index()
     fig4 = px.bar(industry_employee_count, x='Industry', y='Employee_count', title="Average Employee Count per Industry", color='Employee_count')
-    
+
     # Top 10 Designations with Most Job Openings (Filtered)
     top_designations = filtered_df["Designation"].value_counts().nlargest(10).reset_index()
     top_designations.columns = ["Designation", "Job Openings"]
     fig5 = px.bar(top_designations, x='Designation', y='Job Openings', title="Top 10 Designations with Most Job Openings", color='Job Openings')
-    
+
     # Total Applicants by Job Location (Unfiltered)
     location_applicants = df.groupby("Location")["Total_applicants"].sum().reset_index()
     fig6 = px.bar(location_applicants, x='Location', y='Total_applicants', title="Total Applicants by Job Location", color='Total_applicants')
-    
+
     # Convert plots to HTML and embed in webpage
     plots = [pio.to_html(fig, full_html=False) for fig in [fig1, fig2, fig3, fig4, fig5]]
     plot6 = pio.to_html(fig6, full_html=False)  # Separate fig6
-    
-    return render(request, "main/linked_view_charts.html", {"plots": plots, "plot6": plot6, "locations": locations})
+
+    return render(request, "main/linked_view_charts.html", {
+        "plots": plots,
+        "plot6": plot6,
+        "locations": locations
+    })
 
 # ----------------- End of LinkedIn charts -----------------
 
@@ -1470,8 +1485,8 @@ def preds2(request):
         uploaded_file = request.FILES.get('file')
         if uploaded_file:
             df = pd.read_csv(uploaded_file)
-            data = df.to_dict(orient='records')  # 转换为字典列表格式
-            headers = df.columns.tolist()  # 获取 CSV 列名
+            data = df.to_dict(orient='records')  
+            headers = df.columns.tolist()  
             return render(request, 'main/preds2.html', {'data': data, 'headers': headers})
     return render(request, 'main/preds2.html')
 
