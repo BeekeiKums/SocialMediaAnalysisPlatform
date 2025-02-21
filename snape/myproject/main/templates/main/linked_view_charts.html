@@ -10,7 +10,6 @@
         }
     </script>
     <style>
-
     body {
         font-family: Arial, sans-serif;
         margin: 20px;
@@ -49,39 +48,48 @@
     .back-button:hover {
         background-color: #0056b3;
     }
-
-</style>
+    </style>
 </head>
 <body>
     <h2>LinkedIn Data Visualization</h2>
-    
-    <label for="locationFilter">Select Location:</label>
-    <select id="locationFilter" onchange="updateCharts()">
-        <option value="">All</option>
-        {% for location in locations %}
-            <option value="{{ location }}" {% if request.GET.location == location %}selected{% endif %}>{{ location }}</option>
-        {% endfor %}
-    </select>
-    
-    <div id="chartsContainer">
-        {% for plot in plots %}
-            <div class="plot-container">
-                {{ plot|safe }}
-            </div>
-        {% endfor %}
-    </div>
-    
-    <h3>Total Applicants by Job Location (Unfiltered)</h3>
-    <div class="plot-container">
-        {{ plot6|safe }}
-    </div>
 
+    <!-- Upload Form -->
+    <form action="{% url 'linkedin_charts' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="csv_file" required>
+        <button type="submit">Upload CSV</button>
+    </form>
+
+    <!-- Show error if CSV is not uploaded -->
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    {% if plots %}
+        <label for="locationFilter">Select Location:</label>
+        <select id="locationFilter" onchange="updateCharts()">
+            <option value="">All</option>
+            {% for location in locations %}
+                <option value="{{ location }}" {% if request.GET.location == location %}selected{% endif %}>{{ location }}</option>
+            {% endfor %}
+        </select>
+
+        <div id="chartsContainer">
+            {% for plot in plots %}
+                <div class="plot-container">
+                    {{ plot|safe }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <h3>Total Applicants by Job Location (Unfiltered)</h3>
+        <div class="plot-container">
+            {{ plot6|safe }}
+        </div>
+    {% endif %}
 
     <!-- Back Button -->
-     <a href="{% url 'businessman_dashboard' %}" class="back-button">⬅ Back To Dashboard</a>
+    <a href="{% url 'businessman_dashboard' %}" class="back-button">⬅ Back To Dashboard</a>
 
-
-
-    </div>
 </body>
 </html>
