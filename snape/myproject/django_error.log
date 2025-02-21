@@ -2452,3 +2452,5 @@ Traceback (most recent call last):
              ^^^^^
 FileNotFoundError: [Errno 2] No such file or directory: 'C:/Users/binag/Downloads/present/SocialMediaAnalysisPlatform-main/snape/myproject/final_data.csv'
 "GET /linkedin_charts/ HTTP/1.1" 500 108030
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 12358

@@ -147,12 +147,9 @@ USE_TZ = True
 # Static Files
 STATIC_URL = '/static/'
 
-# Directory where collectstatic stores files (for production)
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# Static files directory for development (must NOT include STATIC_ROOT)
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    os.path.join(BASE_DIR, 'staticfiles'),  # Ensure this directory exists
 ]
 
 # Media files
