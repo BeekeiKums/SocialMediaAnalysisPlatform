@@ -8,8 +8,8 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            display: flex;
+            height: 100vh;
         }
 
         /* Sidebar styling */
@@ -26,8 +26,6 @@
             position : fixed;
             left : 0;
             top : 0;
-            box-sizing: border-box;
-            overflow-y: auto;
         }
 
         .sidebar h2 {
@@ -65,8 +63,6 @@
             background-color: #f9f9f9;
             padding: 20px;
             overflow-y: auto;
-            margin-left: 250px;
-            min-height: calc(100vh - 60px);
         }
 
         .main-content .loading {
@@ -82,8 +78,7 @@
             padding: 10px;
             position: fixed;
             bottom: 0;
-            width: calc(100% - 250px);
-            margin-left: 250px;
+            width: 100%;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -114,21 +109,26 @@
 
     <script>
         $(document).ready(function () {
-            const defaultMenuItem = $('.menu-item[data-url="{% url 'category_list' %}"]');
-            defaultMenuItem.addClass('active');
-            loadContent(defaultMenuItem.data('url'));
-
+            // Load default content (e.g., Categories) when the page loads
+            loadContent("{% url 'category_list' %}");
+        
+            // Attach click event to menu items (except logout)
             $('.menu-item').not('.logout-link').on('click', function (e) {
                 e.preventDefault();
-                if ($(this).hasClass('loading')) return;
-
-                $('.menu-item').removeClass('active loading');
-                $(this).addClass('active loading');
-
+        
+                // Remove active class from all menu items
+                $('.menu-item').removeClass('active');
+        
+                // Add active class to the clicked menu item
+                $(this).addClass('active');
+        
+                // Get URL from data attribute
                 const url = $(this).data('url');
+        
+                // Load content dynamically
                 loadContent(url);
             });
-
+        
             function loadContent(url) {
                 const contentArea = $('#main-content');
                 contentArea.html('<div class="loading">Loading...</div>');
