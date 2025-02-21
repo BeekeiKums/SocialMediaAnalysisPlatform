@@ -180,95 +180,84 @@
 
 <script>
 $(document).ready(function() {
-    // Search functionality - Updated for better reliability
-    $('.search-box').on('input', function() {  // Changed from 'keyup' to 'input'
-        const searchTerm = $(this).val().toLowerCase().trim();
-        
+    // Search functionality
+    $('.search-box').on('keyup', function() {
+        const searchTerm = $(this).val().toLowerCase();
         $('.category-table tbody tr').each(function() {
-            const row = $(this);
-            const name = row.find('td:eq(1)').text().toLowerCase();
-            const description = row.find('td:eq(2)').text().toLowerCase();
+            const name = $(this).find('td:eq(1)').text().toLowerCase();
+            const content = $(this).find('td:eq(2)').text().toLowerCase();
             
-            // Show/hide based on both name and description match
-            if (searchTerm === '' || name.includes(searchTerm) || description.includes(searchTerm)) {
-                row.show();
+            if (name.includes(searchTerm) || content.includes(searchTerm)) {
+                $(this).show();
             } else {
-                row.hide();
+                $(this).hide();
             }
         });
     });
 
-    // Filter dropdown functionality - Updated to work with search
+    // Filter dropdown functionality
     $('.filter-dropdown').on('change', function() {
         const selectedType = $(this).val().toLowerCase();
-        const searchTerm = $('.search-box').val().toLowerCase().trim();
         
-        $('.category-table tbody tr').each(function() {
-            const row = $(this);
-            const name = row.find('td:eq(1)').text().toLowerCase();
-            const description = row.find('td:eq(2)').text().toLowerCase();
-            
-            const matchesSearch = searchTerm === '' || 
-                                name.includes(searchTerm) || 
-                                description.includes(searchTerm);
-            const matchesFilter = selectedType === 'all' || 
-                                description.includes(selectedType.toLowerCase());
-            
-            // Show only if matches both search and filter
-            row.toggle(matchesSearch && matchesFilter);
-        });
+        if (selectedType === 'all') {
+            $('.category-table tbody tr').show();
+        } else {
+            $('.category-table tbody tr').each(function() {
+                const content = $(this).find('td:eq(2)').text().toLowerCase();
+                $(this).toggle(content.includes(selectedType.toLowerCase()));
+            });
+        }
     });
 
     // Edit button click handler
-    $('.edit-btn').click(function(event) {
-        event.preventDefault();
-        const button = $(this);
-        const row = button.closest('tr');
-        const categoryId = button.data('id');
+    $('.edit-btn').click(function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        const description = $(this).data('description');
+        
+        $('#category-id').val(id);
+        $('#category-name').val(name);
+        $('#category-description').val(description);
+        
+        $('#edit-modal').show();
+    });
 
-        if (button.text() === 'Update') {
-            // Switch to edit mode
-            button.text('Save');
-            
-            // Get current values
-            const nameCell = row.find('td:eq(1)');
-            const descriptionCell = row.find('td:eq(2)');
-            
-            // Replace text with input fields
-            const nameValue = nameCell.text();
-            const descriptionValue = descriptionCell.text();
-            
-            nameCell.html(`<input type="text" value="${nameValue}" class="edit-input">`);
-            descriptionCell.html(`<input type="text" value="${descriptionValue}" class="edit-input">`);
-        } else {
-            // Save changes
-            const nameInput = row.find('td:eq(1) input').val();
-            const descriptionInput = row.find('td:eq(2) input').val();
-            
-            $.ajax({
-                url: `/update_category/${categoryId}/`,
-                method: 'POST',
-                data: {
-                    name: nameInput,
-                    description: descriptionInput,
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        // Update the table cells with new values
-                        row.find('td:eq(1)').text(nameInput);
-                        row.find('td:eq(2)').text(descriptionInput);
-                        button.text('Update');
-                        alert('Category updated successfully!');
-                    } else {
-                        alert('Failed to update category. Please try again.');
-                    }
-                },
-                error: function() {
-                    alert('Error updating category');
+    // Close modal button
+    $('#close-modal').click(function() {
+        $('#edit-modal').hide();
+    });
+
+    // Form submission handler
+    $('#edit-category-form').submit(function(e) {
+        e.preventDefault();
+        
+        const id = $('#category-id').val();
+        const name = $('#category-name').val();
+        const description = $('#category-description').val();
+        
+        $.ajax({
+            url: `/update_category/${id}/`,
+            method: 'POST',
+            data: {
+                name: name,
+                description: description,
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Update the table row
+                    const row = $(`#category-${id}`);
+                    row.find('td:eq(1)').text(name);
+                    row.find('td:eq(2)').text(description);
+                    
+                    // Close the modal
+                    $('#edit-modal').hide();
                 }
-            });
-        }
+            },
+            error: function() {
+                alert('Error updating category');
+            }
+        });
     });
 });
 </script>
