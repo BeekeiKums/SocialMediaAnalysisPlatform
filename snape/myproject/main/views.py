@@ -9,6 +9,8 @@ from django.contrib.auth import authenticate, login, logout
 
 from django.conf import settings
 
+from myproject.settings import BASE_DIR
+
 
 from .models import Category
 from django.contrib import messages
@@ -1405,12 +1407,13 @@ def get_job_options(request):
 
 from django.shortcuts import render
 import pandas as pd
+from django.conf import settings
 import plotly.express as px
 import plotly.io as pio
 
 def handle_linkedin_data(request):
-    # Dynamically get the file path from MEDIA_ROOT
-    file_path = os.path.join(settings.MEDIA_ROOT, "final_data_cleaned.csv")
+    DATA_DIR = os.path.join(BASE_DIR, 'data')  # Define a data directory
+    file_path = os.path.join(DATA_DIR, "final_data_cleaned.csv")
 
     # Check if file exists before reading
     if not os.path.exists(file_path):
