@@ -1430,10 +1430,14 @@ def handle_linkedin_data(request):
         return render(request, "main/linked_view_charts.html", {"error": "Please upload a CSV file to view visualizations."})
 
     # Load CSV file
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, encoding="utf-8")
 
     # Get unique locations for the dropdown filter
     locations = df["Location"].unique().tolist()
+
+    df["Total_applicants"] = pd.to_numeric(df["Total_applicants"], errors="coerce")
+    df["LinkedIn_Followers"] = pd.to_numeric(df["LinkedIn_Followers"], errors="coerce")
+
 
     # Apply filtering if a location is selected, but only for fig1 to fig5
     selected_location = request.GET.get("location")
