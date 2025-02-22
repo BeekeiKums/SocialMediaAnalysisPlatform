@@ -393,7 +393,7 @@ tr:nth-child(even) {
                 canvas.toBlob(function(blob) {
                     var formData = new FormData();
                     formData.append('image', blob, 'visualization.png');
-                    fetch('/save-visualization/', {
+                    fetch('/save_visualization/', {
                         method: 'POST',
                         body: formData
                     }).then(response => {

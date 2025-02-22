@@ -1075,18 +1075,15 @@ def graph_view(request):
 @csrf_exempt
 def save_visualization(request):
     if request.method == 'POST':
-        image_data = request.POST.get('image')
-        if image_data:
-            format, imgstr = image_data.split(';base64,')
-            ext = format.split('/')[-1]
-            image_file = ContentFile(base64.b64decode(imgstr), name=f"visualization.{ext}")
-            file_path = os.path.join('static', 'visualization.png')
-            with open(file_path, 'wb') as f:
-                f.write(image_file.read())
+        image = request.FILES.get('image')
+        if image:
+            with open('visualization.png', 'wb') as f:
+                for chunk in image.chunks():
+                    f.write(chunk)
             return JsonResponse({'status': 'success', 'message': 'Visualization saved successfully!'})
-        return JsonResponse({'status': 'error', 'message': 'No image provided.'}, status=400)
+        else:
+            return JsonResponse({'status': 'error', 'message': 'No image provided.'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
-              
 
 
 
@@ -1194,9 +1191,6 @@ from django.core.files.storage import default_storage
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
-
-
 
 @csrf_exempt
 def save_visualization_analyst(request):

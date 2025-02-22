@@ -2470,3 +2470,19 @@ Not Found: /save-visualization/
 "POST /save-visualization/ HTTP/1.1" 404 12710
 Not Found: /save-visualization/
 "POST /save-visualization/ HTTP/1.1" 404 12710
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 12685
+Bad Request: /save_visualization/
+"POST /save_visualization/ HTTP/1.1" 400 52
+Bad Request: /save_visualization/
+"POST /save_visualization/ HTTP/1.1" 400 52
+Bad Request: /save_visualization/
+"POST /save_visualization/ HTTP/1.1" 400 52
+Bad Request: /save_visualization/
+"POST /save_visualization/ HTTP/1.1" 400 52
+Not Found: /graph_view/save_visualization/
+"POST /graph_view/save_visualization/ HTTP/1.1" 404 12743
+Not Found: /graph_view/save_visualization/
+"POST /graph_view/save_visualization/ HTTP/1.1" 404 12743
+Not Found: /graph_view/save_visualization/
+"POST /graph_view/save_visualization/ HTTP/1.1" 404 12743
